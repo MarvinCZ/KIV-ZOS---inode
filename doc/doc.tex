@@ -1,0 +1,110 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage[czech]{babel}
+\usepackage{cite}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{siunitx}
+\usepackage{float}
+\usepackage{mathtools}
+\usepackage{svg}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage[a4paper, total={6in, 8in}]{geometry}
+
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstloadlanguages{Ruby}
+\lstset{%
+basicstyle=\ttfamily\color{black},
+commentstyle = \ttfamily\color{red},
+keywordstyle=\ttfamily\color{blue},
+stringstyle=\color{orange},                 
+captionpos=b,
+backgroundcolor=\color{backcolour},
+breaklines=true,
+}
+\renewcommand{\lstlistingname}{Zdrojový kód}
+\renewcommand{\lstlistlistingname}{Seznam zdrojových kódů}
+
+\floatstyle{boxed} 
+\restylefloat{figure}
+\clubpenalty 1000
+\widowpenalty 1000
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{0.0ex plus .2ex}
+
+\titlespacing*{\section}
+{0pt}{3.25ex plus 1ex minus .2ex}{0.0ex plus .2ex}
+\titlespacing*{\subsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{0.0ex plus .2ex}
+\titlespacing*{\subsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{0.0ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\let\olditemize=\itemize \let\endolditemize=\enditemize \renewenvironment{itemize}{\olditemize \itemsep0em}{\endolditemize}
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{0.3cm}
+
+\begin{document}
+
+\begin{titlepage}
+		\centering
+		
+		\includegraphics[width=8cm]{favlogo.jpg}
+			
+		\vspace{2cm}
+			
+		{\Huge KIV/ZOS}
+			
+		\vspace{1cm}
+			
+		{\Large Zjednodušený filesystem založený na i-uzlech}
+		
+		\vspace{3cm}
+		
+		{\Large Martin Bruna (A20B0066P)}\par
+		email: brunam@students.zcu.cz
+		
+		\vfill
+		
+		\today
+\end{titlepage}
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\tableofcontents
+\newpage
+\end{document}
+
