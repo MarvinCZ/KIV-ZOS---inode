@@ -9,7 +9,7 @@ class FileSystem : public std::enable_shared_from_this<FileSystem> {
 public:
     explicit FileSystem(std::string realFile);
 
-    int format(long byteSize);
+    int format(unsigned long byteSize);
 
     std::shared_ptr<INode> createInode();
     std::shared_ptr<INode> getInode(int index);
@@ -20,6 +20,7 @@ public:
     void write(void* buffer, size_t size, int32_t address);
     void removeClusterByAddress(int32_t address);
     void saveInode(const pseudo_inode* inode);
+    void removeInode(std::shared_ptr<pseudo_inode> inode);
 
 private:
     std::string realFile;

@@ -11,6 +11,9 @@ MemoryIterator::MemoryIterator(std::shared_ptr <INode> inode, std::shared_ptr<Fi
     }
 
     this->used_clusters = (this->inode->inode->file_size - 1) / CLUSTER_SIZE;
+    if (this->inode->inode->file_size <= 0) {
+        this->used_clusters = -1;
+    }
 
     this->rewind();
 }
@@ -24,6 +27,7 @@ void MemoryIterator::writec(char c) {
 
 int MemoryIterator::readc() {
     if (this->index >= this->inode->inode->file_size) {
+        readDone = true;
         return EOF;
     }
     int32_t address = this->address();
@@ -69,7 +73,7 @@ int32_t MemoryIterator::address() {
 
 int32_t MemoryIterator::clusterAddress(int cluster) {
     int32_t new_cluster = -1;
-    if (this->write && this->used_clusters <= cluster) {
+    if (this->write && this->used_clusters < cluster) {
         new_cluster = this->fileSystem->createCluster();
         this->used_clusters++;
     }
@@ -93,7 +97,7 @@ int32_t MemoryIterator::clusterAddress(int cluster) {
         }
         int32_t address = this->inode->inode->indirect1 + (cluster * sizeof(int32_t));
         if (new_cluster != -1) {
-            std::cout << "INDIRECT1 - " << address << " - CLUSTER - " << cluster << "/" << LINKS_PER_CLUSTER << " - NEW - " << new_cluster << std::endl;
+//            std::cout << "INDIRECT1 - " << address << " - CLUSTER - " << cluster << "/" << LINKS_PER_CLUSTER << " - NEW - " << new_cluster << std::endl;
             // indirect - cluster address in indirect cluster
             this->fileSystem->write(&new_cluster, sizeof(int32_t), address);
             return new_cluster;
@@ -138,11 +142,18 @@ int32_t MemoryIterator::clusterAddress(int cluster) {
 
 void MemoryIterator::truncate(int32_t truncateSize) {
     int to = (truncateSize - 1) / CLUSTER_SIZE;
-    int from = this->used_clusters;
+    int from = (this->inode->inode->file_size - 1) / CLUSTER_SIZE;
+    if (truncateSize == 0) {
+        to = -1;
+    }
+
+    if (to >= from) {
+        return;
+    }
 
     if (to < 4) {
         int max = from > 4 ? 4 : from;
-        for (int i = to; i <= max; ++i) {
+        for (int i = to + 1; i <= max; ++i) {
             this->fileSystem->removeClusterByAddress(this->inode->inode->direct[i]);
         }
     }

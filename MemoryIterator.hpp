@@ -17,6 +17,7 @@ public:
     void writec(char c);
     int readc();
     void close();
+    bool readDone = false;
 protected:
     std::shared_ptr<INode> inode;
     std::shared_ptr<FileSystem> fileSystem;

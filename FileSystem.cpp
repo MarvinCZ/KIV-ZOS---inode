@@ -10,7 +10,7 @@ FileSystem::FileSystem(std::string realFile) {
     this->realFile = std::move(realFile);
 }
 
-int FileSystem::format(long byteSize) {
+int FileSystem::format(unsigned long byteSize) {
     FILE * pFile = fopen(this->realFile.c_str(), "w");
     fclose(pFile);
     pFile = getFile();
@@ -34,7 +34,7 @@ int FileSystem::format(long byteSize) {
     int clusterCount = (int) ((dataSize * 8) / (CLUSTER_SIZE * 8 + 1));
     int clusterMapSize = clusterCount / 8 + (clusterCount % 8 == 0 ? 0 : 1);
 
-    std::cout << inodeCount << ": " << inodeMapSize << " : " << clusterCount << ": " << clusterMapSize << std::endl;
+//    std::cout << inodeCount << ": " << inodeMapSize << " : " << clusterCount << ": " << clusterMapSize << std::endl;
 
     if (clusterMapSize + CLUSTER_SIZE * clusterCount > clusterCount) {
         clusterCount--;
@@ -52,7 +52,7 @@ int FileSystem::format(long byteSize) {
     this->inodeBitmap.resize(super_block.inode_count, false);
     this->clusterBitmap.resize(super_block.cluster_count, false);
 
-    std::cout << super_block.inode_count << ": " << super_block.inode_start_address << " : " << super_block.cluster_count << ": " << super_block.data_start_address << std::endl;
+//    std::cout << super_block.inode_count << ": " << super_block.inode_start_address << " : " << super_block.cluster_count << ": " << super_block.data_start_address << std::endl;
 
     fseek(pFile, 0, SEEK_SET);
     fwrite(&super_block, SUPERBLOCK_SIZE, 1, pFile);
@@ -69,10 +69,10 @@ int FileSystem::format(long byteSize) {
     auto stream = inode->getOutputStream(this->shared_from_this());
 
     directory_item root{};
-    strcpy(root.item_name, "..");
     root.inode = inode->inode->node_id;
-    stream.sputn(reinterpret_cast<const char *>(&root), sizeof(directory_item));
     strcpy(root.item_name, ".");
+    stream.sputn(reinterpret_cast<const char *>(&root), sizeof(directory_item));
+    strcpy(root.item_name, "..");
     stream.sputn(reinterpret_cast<const char *>(&root), sizeof(directory_item));
     stream.close();
 
@@ -81,12 +81,11 @@ int FileSystem::format(long byteSize) {
 }
 
 void FileSystem::load() {
-    FILE * pFile;
-    pFile = fopen(this->realFile.c_str(), "rb");
+    FILE * pFile = getFile();
     fseek(pFile, 0, SEEK_SET);
     fread(&this->super_block, SUPERBLOCK_SIZE, 1, pFile);
 
-    std::cout << this->super_block.inode_count << ": " << this->super_block.inode_start_address << " : " << this->super_block.cluster_count << ": " << this->super_block.data_start_address << std::endl;
+//    std::cout << this->super_block.inode_count << ": " << this->super_block.inode_start_address << " : " << this->super_block.cluster_count << ": " << this->super_block.data_start_address << std::endl;
 
     this->inodeBitmap.resize(this->super_block.inode_count);
     this->clusterBitmap.resize(this->super_block.cluster_count);
@@ -101,7 +100,7 @@ void FileSystem::load() {
             fread(&byte, 1, 1, pFile);
         }
         if (this->inodeBitmap[i]) {
-            std::cout << "INODE - " << i << " - ON" << std::endl;
+//            std::cout << "INODE - " << i << " - ON" << std::endl;
         }
         this->inodeBitmap[i] = (byte & mask) > 0;
         mask >>= 1;
@@ -117,12 +116,12 @@ void FileSystem::load() {
         }
         this->clusterBitmap[i] = (byte & mask) > 0;
         if (this->clusterBitmap[i]) {
-            std::cout << "CLUSTER - " << i << " - ON" << std::endl;
+//            std::cout << "CLUSTER - " << i << " - ON" << std::endl;
         }
         mask >>= 1;
     }
 
-    fclose(pFile);
+    releaseFile();
 }
 
 std::shared_ptr<INode> FileSystem::createInode() {
@@ -158,7 +157,7 @@ int32_t FileSystem::createCluster() {
         if (!this->clusterBitmap[i]) {
             this->clusterBitmap[i] = true;
             this->setBit(i, true, this->super_block.bitmap_start_address);
-            std::cout << "CREATING CLUSTER - " << i << " - ADDRESS - " << (i*CLUSTER_SIZE) << " - REAL ADDRESS - " << (this->super_block.data_start_address + (i*CLUSTER_SIZE)) << std::endl;
+//            std::cout << "CREATING CLUSTER - " << i << " - ADDRESS - " << (i*CLUSTER_SIZE) << " - REAL ADDRESS - " << (this->super_block.data_start_address + (i*CLUSTER_SIZE)) << std::endl;
             return this->super_block.data_start_address + (i*CLUSTER_SIZE);
         }
     }
@@ -167,7 +166,6 @@ int32_t FileSystem::createCluster() {
 
 void FileSystem::read(void* buffer, size_t size, int32_t address) {
     FILE * pFile = getFile();
-    pFile = fopen(this->realFile.c_str(), "rb");
     fseek(pFile, address, SEEK_SET);
     fread(buffer, size, 1, pFile);
     releaseFile();
@@ -223,5 +221,10 @@ void FileSystem::removeClusterByAddress(int32_t address) {
 
     this->clusterBitmap[address] = false;
     this->setBit(address, false, this->super_block.bitmap_start_address);
-    std::cout << "REMOVING CLUSTER - " << address << std::endl;
+//    std::cout << "REMOVING CLUSTER - " << address << std::endl;
+}
+
+void FileSystem::removeInode(std::shared_ptr<pseudo_inode> inode) {
+    this->inodeBitmap[inode->node_id] = false;
+    this->setBit(inode->node_id, false, this->super_block.bitmapi_start_address);
 }

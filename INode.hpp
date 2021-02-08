@@ -4,6 +4,7 @@
 #include <memory>
 #include "structs.hpp"
 #include "MemoryIterator.hpp"
+#include "FileSystem.hpp"
 
 class INode : public std::enable_shared_from_this<INode> {
     class OutputStream : public std::streambuf {
@@ -33,7 +34,7 @@ class INode : public std::enable_shared_from_this<INode> {
         int read(void* buffer, size_t size) {
             for (int i = 0; i < size; ++i) {
                 int c = this->memoryIterator->readc();
-                if (c == EOF) {
+                if (this->memoryIterator->readDone) {
                     return EOF;
                 }
                 *((char*)buffer + i) = (char) c;
@@ -57,6 +58,8 @@ public:
     InputStream getInputStream(const std::shared_ptr<FileSystem>& fileSystem) {
         return InputStream(std::make_shared<MemoryIterator>(this->shared_from_this(), fileSystem, false));
     };
+
+    void truncate(const std::shared_ptr<FileSystem>& fileSystem, int32_t newSize = 0);
     std::shared_ptr<pseudo_inode> inode;
 
 };
