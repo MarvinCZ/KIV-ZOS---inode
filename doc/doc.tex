@@ -25,7 +25,7 @@
 basicstyle=\ttfamily\color{black},
 commentstyle = \ttfamily\color{red},
 keywordstyle=\ttfamily\color{blue},
-stringstyle=\color{orange},                 
+stringstyle=\color{orange},
 captionpos=b,
 backgroundcolor=\color{backcolour},
 breaklines=true,
@@ -33,7 +33,7 @@ breaklines=true,
 \renewcommand{\lstlistingname}{Zdrojový kód}
 \renewcommand{\lstlistlistingname}{Seznam zdrojových kódů}
 
-\floatstyle{boxed} 
+\floatstyle{boxed}
 \restylefloat{figure}
 \clubpenalty 1000
 \widowpenalty 1000
@@ -45,7 +45,7 @@ breaklines=true,
 \renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
 
 \titleformat{\subsubsubsection}
-  {\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
+{\normalfont\normalsize\bfseries}{\thesubsubsubsection}{1em}{}
 \titlespacing*{\subsubsubsection}
 {0pt}{3.25ex plus 1ex minus .2ex}{0.0ex plus .2ex}
 
@@ -58,13 +58,13 @@ breaklines=true,
 
 \makeatletter
 \renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
-  {3.25ex \@plus1ex \@minus.2ex}%
-  {-1em}%
-  {\normalfont\normalsize\bfseries}}
+{3.25ex \@plus1ex \@minus.2ex}%
+{-1em}%
+{\normalfont\normalsize\bfseries}}
 \renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
-  {3.25ex \@plus1ex \@minus .2ex}%
-  {-1em}%
-  {\normalfont\normalsize\bfseries}}
+{3.25ex \@plus1ex \@minus .2ex}%
+{-1em}%
+{\normalfont\normalsize\bfseries}}
 \def\toclevel@subsubsubsection{4}
 \def\toclevel@paragraph{5}
 \def\toclevel@paragraph{6}
@@ -79,32 +79,86 @@ breaklines=true,
 
 \begin{document}
 
-\begin{titlepage}
+	\begin{titlepage}
 		\centering
-		
+
 		\includegraphics[width=8cm]{favlogo.jpg}
-			
+
 		\vspace{2cm}
-			
+
 		{\Huge KIV/ZOS}
-			
+
 		\vspace{1cm}
-			
+
 		{\Large Zjednodušený filesystem založený na i-uzlech}
-		
+
 		\vspace{3cm}
-		
+
 		{\Large Martin Bruna (A20B0066P)}\par
 		email: brunam@students.zcu.cz
-		
-		\vfill
-		
-		\today
-\end{titlepage}
 
-\setcounter{secnumdepth}{4}
-\setcounter{tocdepth}{4}
-\tableofcontents
-\newpage
+		\vfill
+
+		\today
+	\end{titlepage}
+
+	\setcounter{secnumdepth}{4}
+	\setcounter{tocdepth}{4}
+	\tableofcontents
+	\newpage
+
+	\section{Zadání}
+	Tématem semestrální práce bude práce se zjednodušeným souborovým systémem založeným na i-uzlech.
+
+	Systém bude podporovat příkazy: cp, mv, rm,mkdir, rmdir, ls, cat, cd, pwd, info, incp, outcp, load, format, ln
+
+	Předpokládáme korektní syntax zadávaných příkazů, ale ne sémanticky.
+	Délka souboru je omezena na 8+3 znaků plus ukončující 12. byte.
+	\newpage
+	\section{Teorie}
+	Souborov systém založený na i-nodech se zkládá z několika částí
+	\subsection{Super blok}
+	Hlavička systému, obsahuje počáteční adresy jednotlivých částí a další konfiguraci celého systému.
+	\subsection{I-node a cluster bitmapa}
+	Dvě sekce, která každá představuje jedno bitové pole označující, které části i-node/cluster sektoru jsou zaplněny/volné.
+	\subsection{Sektor i-nodu}
+	Sektor, kde se nachází všechna informační data i-nodu.
+	\subsubsection{I-node}
+	I-node je identifiktor a nositel informací pro jednotlivé soubory. Má na sobě flag zda jde o složku nebo běžný soubor. Zároveň obsahuje 5 direct linků (přímí odkaz na pamět v cluster sektoru), adresu na indirect cluster, který v sobě má seznam adres na reálná data a v poslední řadě odkaz na 2x nepřímí odkaz (odkaz na seznam oskazů na odkazy do reálných dat).
+
+	Kromě toho má i-node na sobě uloženo, jaká je velikost dat a počet složek ve kterých se na daný i-node odkazuje.
+	\subsection{Sektor clusterů}
+	Sektor, kde se nachází data souborů.
+
+	\newpage
+	\section{Uživatelská dokumentace}
+	Program byl testován s překladem pomocí cmake ve verzi 3.19.
+
+	Jako parametr program přijímá cestu k souboru do kterého je/bude uložen celý filesystem. Pokud parametr není zadán je defaultně zvolen soubor fs.dat
+
+	Před používáním nového filesystému je potřeba provést formátování pomocí příkazu format.
+
+	Příkazy: viz. zadání
+	
+	\newpage
+	\section{Programatorská dokumentace}
+	Hlavním vstupem do programu je main.cpp, který spustí instanci Console
+	\subsection{Console - Console.hpp + Console.cpp}
+	Tvoří uživatelský interface aplikace a předává uživatelem zadané příkazy dál
+	\subsection{System - System.hpp + System.cpp}
+	Obsahuje veškerou vysokoúrovňovou logiku - poskytuje implementaci jednotlivých příkazů
+	\subsection{Directory - Directory.hpp + Directory.cpp}
+	Poskytuje možnost práce se složkamy
+	\subsection{INode - INode.hpp + INode.cpp}
+	Obalka logiky kolem samotného inodu, primárně poskytuje vstupní/vystupní stream.
+	\subsection{MemoryIterator - MemoryIterator.hpp + MemoryIterator.cpp}
+	Vlastní logika průchodu daty inodu, vytváření nocýh odkazů/mazání nepotřebných
+	\subsection{FileSystem - FileSystem.hpp + FileSystem.cpp}
+	Nejnižší úroveň - přístup k zapisování přímo na filesystem, řeší správu bitmap, formátování zápis a čtení z cluterů.
+    
+	\newpage
+	\section{Závěr}
+	Výsledkem práce je funkční zjednodučený i-node based filesystem. Systém je zpracovaný v C++. Práce zabrala přibližně 30 hodin.
+
 \end{document}
 
